@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="GPU SHOWDOWN", page_icon="🎮")
 
-st.title("🎮 GPU SHOWDOWN – GUI Edition")
+st.title("🎮 GPU SHOWDOWN")
 st.write("Pick a GPU, use case, and resolution to estimate performance and value.")
 
 
@@ -189,3 +189,4 @@ if st.button("🔍 Calculate Performance"):
     st.write(f"**Value:** {result['price_verdict']}")
 else:
     st.info("Set your options above, then click **Calculate Performance**.")
+
