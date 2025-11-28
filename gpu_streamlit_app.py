@@ -145,7 +145,7 @@ use_choice = st.selectbox(
     ],
 )
 
-st.subheader(Choose resolution")
+st.subheader("Choose resolution")
 
 res_choice = st.selectbox(
     "Resolution",
@@ -158,7 +158,7 @@ res_choice = st.selectbox(
 
 st.markdown("---")
 
-if st.button("🔍 Calculate Performance"):
+if st.button("Calculate Performance"):
     result = compute_gpu_setup(
         brand_choice=brand_choice,
         model_choice=model_choice,
@@ -187,5 +187,6 @@ if st.button("🔍 Calculate Performance"):
     st.write(f"**Value:** {result['price_verdict']}")
 else:
     st.info("Set your options above, then click **Calculate Performance**.")
+
 
 
