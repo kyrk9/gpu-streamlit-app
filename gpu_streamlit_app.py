@@ -93,6 +93,37 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
     else:
         price_verdict = "Mid-range pricing with balanced value."
 
+
+   if final_fps >= 140; 
+tier = "high end"
+elif final_fps >= 90;
+tier = "upper mid-range"
+elif final_fps >= 60;
+tier = "mdi-range"
+else:
+   tier = "entry level"
+
+   if brand == "NVIDIA":
+        if model == "RTX 4060":
+            rival = "AMD RX 7600 class"
+        elif model == "RTX 4070":
+            rival = "AMD RX 7700 XT class"
+        else:
+            rival = "AMD RX 7900 XT and similar high-end cards"
+    else:  # AMD
+        if model == "RX 7600":
+            rival = "NVIDIA RTX 4060 class"
+        elif model == "RX 7700 XT":
+            rival = "NVIDIA RTX 4070 class"
+        else:
+            rival = "NVIDIA RTX 4080 and similar high-end cards"
+
+    comment = (
+        f"For {use.lower()} at {resolution}, the {brand} {model} sits in the {tier} tier "
+        f"of this lineup, delivering about {final_fps} FPS at a price of ${price}. "
+        f"It roughly competes with the {rival} in terms of price-to-performance."
+    )
+
     
     return {
         "brand": brand,
@@ -104,6 +135,7 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
         "final_fps": final_fps,
         "perf_verdict": perf_verdict,
         "price_verdict": price_verdict,
+       "comment": comment,
     }
 
 
@@ -185,8 +217,16 @@ if st.button("Calculate Performance"):
     st.subheader("Verdict")
     st.write(f"**Performance:** {result['perf_verdict']}")
     st.write(f"**Value:** {result['price_verdict']}")
+
+ st.markdown("**Comment / Analysis:**")
+    st.text_area(
+        label="",
+        value=result["comment"],
+        height=140,
+    )
 else:
     st.info("Set your options above, then click **Calculate Performance**.")
+
 
 
 
