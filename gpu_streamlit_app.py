@@ -94,12 +94,12 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
         price_verdict = "Mid-range pricing with balanced value."
 
 
-   if final_fps >= 140; 
+   if final_fps >= 140:
 tier = "high end"
-elif final_fps >= 90;
+elif final_fps >= 90:
 tier = "upper mid-range"
-elif final_fps >= 60;
-tier = "mdi-range"
+elif final_fps >= 60:
+tier = "mid-range"
 else:
    tier = "entry level"
 
@@ -226,6 +226,7 @@ if st.button("Calculate Performance"):
     )
 else:
     st.info("Set your options above, then click **Calculate Performance**.")
+
 
 
 
