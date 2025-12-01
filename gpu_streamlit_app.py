@@ -95,13 +95,13 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
 
 
    if final_fps >= 140:
-tier = "high end"
-elif final_fps >= 90:
-tier = "upper mid-range"
-elif final_fps >= 60:
-tier = "mid-range"
-else:
-   tier = "entry level"
+       tier = "high end"
+   elif final_fps >= 90:
+       tier = "upper mid-range"
+   elif final_fps >= 60:
+       tier = "mid-range"
+   else:
+       tier = "entry level"
 
    if brand == "NVIDIA":
         if model == "RTX 4060":
@@ -226,6 +226,7 @@ if st.button("Calculate Performance"):
     )
 else:
     st.info("Set your options above, then click **Calculate Performance**.")
+
 
 
 
