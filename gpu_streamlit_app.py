@@ -7,7 +7,7 @@ st.write("Pick a GPU, use case, and resolution to estimate performance and value
 
 
 def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
-   
+    # BRAND + MODEL
     if brand_choice == "NVIDIA":
         brand = "NVIDIA"
         driver = "Excellent driver stability (NVIDIA)."
@@ -48,6 +48,7 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
     else:
         raise ValueError("Invalid brand selected.")
 
+    # USE CASE
     if use_choice == "Gaming":
         use = "Gaming"
         use_mult = 1.0
@@ -60,6 +61,7 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
     else:
         raise ValueError("Invalid use case.")
 
+    # RESOLUTION
     if res_choice == "1080p":
         resolution = "1080p"
         res_mult = 1.2
@@ -72,10 +74,10 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
     else:
         raise ValueError("Invalid resolution.")
 
-  
+    # FPS CALCULATION
     final_fps = int(base_fps * use_mult * res_mult)
 
-   
+    # PERFORMANCE VERDICT
     if final_fps >= 140:
         perf_verdict = "Amazing performance! Great for high refresh-rate gaming."
     elif final_fps >= 90:
@@ -85,7 +87,7 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
     else:
         perf_verdict = "Low performance. Consider lowering resolution or upgrading."
 
-   
+    # PRICE VERDICT
     if price <= 350:
         price_verdict = "Great budget value!"
     elif price >= 1000:
@@ -93,17 +95,17 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
     else:
         price_verdict = "Mid-range pricing with balanced value."
 
+    # COMPARISON COMMENT
+    if final_fps >= 140:
+        tier = "high-end"
+    elif final_fps >= 90:
+        tier = "upper mid-range"
+    elif final_fps >= 60:
+        tier = "mid-range"
+    else:
+        tier = "entry-level"
 
-   if final_fps >= 140:
-       tier = "high end"
-   elif final_fps >= 90:
-       tier = "upper mid-range"
-   elif final_fps >= 60:
-       tier = "mid-range"
-   else:
-       tier = "entry level"
-
-   if brand == "NVIDIA":
+    if brand == "NVIDIA":
         if model == "RTX 4060":
             rival = "AMD RX 7600 class"
         elif model == "RTX 4070":
@@ -124,7 +126,6 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
         f"It roughly competes with the {rival} in terms of price-to-performance."
     )
 
-    
     return {
         "brand": brand,
         "model": model,
@@ -137,8 +138,6 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
         "price_verdict": price_verdict,
         "comment": comment,
     }
-
-
 
 
 st.subheader("Choose a GPU brand")
@@ -218,19 +217,14 @@ if st.button("Calculate Performance"):
     st.write(f"**Performance:** {result['perf_verdict']}")
     st.write(f"**Value:** {result['price_verdict']}")
 
-     st.markdown("**Comment / Analysis:**")
+    st.markdown("**Comment / Analysis:**")
     st.text_area(
         label="",
         value=result["comment"],
         height=140,
     )
-
 else:
     st.info("Set your options above, then click **Calculate Performance**.")
-
-
-
-
 
 
 
