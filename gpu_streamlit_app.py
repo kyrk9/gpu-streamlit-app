@@ -135,7 +135,7 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
         "final_fps": final_fps,
         "perf_verdict": perf_verdict,
         "price_verdict": price_verdict,
-       "comment": comment,
+        "comment": comment,
     }
 
 
@@ -218,14 +218,16 @@ if st.button("Calculate Performance"):
     st.write(f"**Performance:** {result['perf_verdict']}")
     st.write(f"**Value:** {result['price_verdict']}")
 
- st.markdown("**Comment / Analysis:**")
+     st.markdown("**Comment / Analysis:**")
     st.text_area(
         label="",
         value=result["comment"],
         height=140,
     )
+
 else:
     st.info("Set your options above, then click **Calculate Performance**.")
+
 
 
 
