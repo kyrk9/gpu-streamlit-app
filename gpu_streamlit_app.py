@@ -1,4 +1,13 @@
 import streamlit as st
+import sqlite3 
+
+conn = sqlite3.connect("pcparts.sqbpro")
+conn.row_factory = sqlite3.Row
+
+def load_table(table_name):
+    cur = conn.cursor()
+    cur.execute(f"SELECT * FROM {table_name}")
+    return cur.fetchall()
 
 st.set_page_config(page_title="GPU SHOWDOWN", page_icon="🎮")
 
@@ -225,6 +234,7 @@ if st.button("Calculate Performance"):
     )
 else:
     st.info("Set your options above, then click **Calculate Performance**.")
+
 
 
 
