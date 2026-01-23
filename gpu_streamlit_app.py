@@ -7,8 +7,7 @@ from typing import List, Optional, Tuple
 # CONFIG + STYLE
 # =========================
 st.set_page_config(
-    page_title="PC Builder | Prebuilt Finder",
-    page_icon="🧩",
+    page_title="PC Builder",
     layout="wide",
 )
 
@@ -195,8 +194,8 @@ def recommend_best_build(
 # =========================
 # LOAD DB DATA (with friendly errors)
 # =========================
-st.title("🧩 PC Builder — Prebuilt Finder")
-st.write("Pick a budget in the sidebar. The app generates the best compatible build from your database.")
+st.title("PC Builder")
+st.write("Open the sidebar to generate the best build for your budget.")
 
 try:
     cpus = load_table("CPU")
@@ -330,6 +329,7 @@ Warnings:
 
 else:
     st.info("Use the sidebar to set a budget, then click **Generate Best Build**.")
+
 
 
 
