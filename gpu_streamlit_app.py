@@ -283,7 +283,7 @@ if run:
             st.write(f"**Motherboard:** {mobo['name']}  —  ${mobo['price']}  ·  Socket: `{mobo['socket']}` · RAM: `{mobo['ram_type']}` · Form: `{mobo['form_factor']}`")
             st.write(f"**RAM:** {ram['name']}  —  ${ram['price']}  ·  `{ram['ram_type']}` · {ram['size_gb']}GB")
             # GPU brand might not exist; guard it
-            gpu_brand = gpu["brand"] if "brand" in gpu.keys() else "GPU"
+            gpu_brand = gpu["brand"]
             st.write(f"**GPU:** {gpu_brand} {gpu['name']}  —  ${gpu['price']}  ·  Power: ~{gpu['power_w']}W")
             st.write(f"**PSU:** {psu['name']}  —  ${psu['price']}  ·  {psu['watts']}W")
             st.write(f"**Case:** {case['name']}  —  ${case['price']}")
@@ -330,6 +330,7 @@ Warnings:
 
 else:
     st.info("Use the sidebar to set a budget, then click **Generate Best Build**.")
+
 
 
 
