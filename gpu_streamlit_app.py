@@ -310,7 +310,7 @@ Total Price: ${total}
 CPU: {cpu['name']} (${cpu['price']}) | socket={cpu['socket']} | tdp={cpu['tdp_w']}W
 Motherboard: {mobo['name']} (${mobo['price']}) | socket={mobo['socket']} | ram={mobo['ram_type']} | form={mobo['form_factor']}
 RAM: {ram['name']} (${ram['price']}) | type={ram['ram_type']} | size={ram['size_gb']}GB
-GPU: {gpu.get('brand','')} {gpu['name']} (${gpu['price']}) | power={gpu['power_w']}W
+GPU: {gpu['brand']} {gpu['name']} (${gpu['price']}) | power={gpu['power_w']}W
 PSU: {psu['name']} (${psu['price']}) | watts={psu['watts']}W
 Case: {case['name']} (${case['price']})
 
@@ -330,6 +330,7 @@ Warnings:
 
 else:
     st.info("Use the sidebar to set a budget, then click **Generate Best Build**.")
+
 
 
 
