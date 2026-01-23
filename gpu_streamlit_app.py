@@ -8,7 +8,7 @@ conn.row_factory = sqlite3.Row
 
 def load_table(table_name: str):
     cur = conn.cursor()
-    cur.execute(f"SELECT * FROM {table_name}")
+    cur.execute(f'SELECT * FROM "{table_name}"')
     return cur.fetchall()
 
 
@@ -348,4 +348,5 @@ if st.button("✅ Check Compatibility"):
         st.info("✅ Passed checks:")
         for p in passes:
             st.write(f"- {p}")
+
 
