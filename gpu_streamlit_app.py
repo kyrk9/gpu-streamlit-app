@@ -204,7 +204,7 @@ try:
     rams = load_table("RAM")
     gpus = load_table("GPU")
     psus = load_table("PSU")
-    cases = load_table("PC_CASE")
+    cases = load_table("CASE"')
 except Exception as e:
     st.error("Database load failed. Check that `pcparts.db` is in the repo and table names match exactly.")
     st.code(str(e))
@@ -330,5 +330,6 @@ Warnings:
 
 else:
     st.info("Use the sidebar to set a budget, then click **Generate Best Build**.")
+
 
 
