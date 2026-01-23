@@ -222,123 +222,122 @@ else:
 # =========================
 st.markdown("---")
 st.header("🧩 PC Builder (Compatibility Check)")
-st.write("Select parts from the database and get compatibility results + price totals.")
+st.write("Select parts from the database and check hardware compatibility.")
 
-# Load tables from SQLite
-cpus = load_table("cpus")
-motherboards = load_table("motherboards")
-rams = load_table("ram")
-gpus = load_table("gpus")
-psus = load_table("psus")
-cases = load_table("cases") if True else []
+# Load tables (MATCHING YOUR EXACT TABLE NAMES)
+cpus = load_table("CPU")
+motherboards = load_table("MOTHERBOARD")
+rams = load_table("RAM")
+gpus = load_table("GPU")
+psus = load_table("PSU")
+cases = load_table("CASE")
 
-if not (cpus and motherboards and rams and gpus and psus):
-    st.warning(
-        "One or more tables are empty (cpus/motherboards/ram/gpus/psus). "
-        "Add records in DB Browser, then refresh."
-    )
+def pick_row(rows, label):
+    for r in rows:
+        if f"{r['name']} (${r['price']})" == label:
+            return r
+    return None
 
+# Dropdowns
 cpu_label = st.selectbox(
     "CPU",
-    [f"{r['name']} (${r['price']})" for r in cpus] if cpus else ["(no CPUs found)"],
+    [f"{r['name']} (${r['price']})" for r in cpus]
 )
+
 mobo_label = st.selectbox(
     "Motherboard",
-    [f"{r['name']} (${r['price']})" for r in motherboards] if motherboards else ["(no motherboards found)"],
+    [f"{r['name']} (${r['price']})" for r in motherboards]
 )
+
 ram_label = st.selectbox(
     "RAM",
-    [f"{r['name']} (${r['price']})" for r in rams] if rams else ["(no RAM found)"],
+    [f"{r['name']} (${r['price']})" for r in rams]
 )
+
 gpu_label = st.selectbox(
     "GPU",
-    [f"{r['name']} (${r['price']})" for r in gpus] if gpus else ["(no GPUs found)"],
+    [f"{r['name']} (${r['price']})" for r in gpus]
 )
+
 psu_label = st.selectbox(
     "PSU",
-    [f"{r['name']} (${r['price']})" for r in psus] if psus else ["(no PSUs found)"],
+    [f"{r['name']} (${r['price']})" for r in psus]
 )
 
-use_case_case = st.checkbox("Include a Case in compatibility checks", value=True)
-
-case_label = None
-if use_case_case:
-    case_label = st.selectbox(
-        "Case",
-        [f"{r['name']} (${r['price']})" for r in cases] if cases else ["(no cases found)"],
-    )
+case_label = st.selectbox(
+    "Case",
+    [f"{r['name']} (${r['price']})" for r in cases]
+)
 
 if st.button("✅ Check Compatibility"):
-    cpu = pick_row_by_label(cpus, cpu_label)
-    mobo = pick_row_by_label(motherboards, mobo_label)
-    ram = pick_row_by_label(rams, ram_label)
-    gpu = pick_row_by_label(gpus, gpu_label)
-    psu = pick_row_by_label(psus, psu_label)
-    case = pick_row_by_label(cases, case_label) if (use_case_case and case_label and cases) else None
+    cpu = pick_row(cpus, cpu_label)
+    mobo = pick_row(motherboards, mobo_label)
+    ram = pick_row(rams, ram_label)
+    gpu = pick_row(gpus, gpu_label)
+    psu = pick_row(psus, psu_label)
+    case = pick_row(cases, case_label)
 
     errors = []
     warnings = []
     passes = []
 
-    # --- Socket check
-    if cpu and mobo:
-        if cpu["socket"] != mobo["socket"]:
-            errors.append(f"CPU socket **{cpu['socket']}** does not match motherboard socket **{mobo['socket']}**.")
-        else:
-            passes.append(f"CPU socket matches motherboard (**{cpu['socket']}**).")
+    # CPU ↔ Motherboard socket
+    if cpu["socket"] != mobo["socket"]:
+        errors.append(f"CPU socket ({cpu['socket']}) does not match motherboard socket ({mobo['socket']}).")
+    else:
+        passes.append("CPU socket matches motherboard.")
 
-    # --- RAM type check
-    if ram and mobo:
-        if ram["ram_type"] != mobo["ram_type"]:
-            errors.append(f"RAM type **{ram['ram_type']}** does not match motherboard RAM type **{mobo['ram_type']}**.")
-        else:
-            passes.append(f"RAM type matches motherboard (**{ram['ram_type']}**).")
+    # RAM type ↔ Motherboard
+    if ram["ram_type"] != mobo["ram_type"]:
+        errors.append(f"RAM type ({ram['ram_type']}) does not match motherboard ({mobo['ram_type']}).")
+    else:
+        passes.append("RAM type matches motherboard.")
 
-    # --- Case form factor check (optional)
-    if case and mobo:
-        ff = mobo["form_factor"]  # "ATX" / "mATX" / "ITX"
-        if ff == "ATX" and case["supports_atx"] != 1:
-            errors.append("Case does not support **ATX** motherboards.")
-        elif ff == "mATX" and case["supports_matx"] != 1:
-            errors.append("Case does not support **mATX** motherboards.")
-        elif ff == "ITX" and case["supports_itx"] != 1:
-            errors.append("Case does not support **ITX** motherboards.")
-        else:
-            passes.append(f"Case supports motherboard form factor (**{ff}**).")
+    # Case form factor
+    ff = mobo["form_factor"]
+    if ff == "ATX" and case["supports_atx"] != 1:
+        errors.append("Case does not support ATX motherboards.")
+    elif ff == "mATX" and case["supports_matx"] != 1:
+        errors.append("Case does not support mATX motherboards.")
+    elif ff == "ITX" and case["supports_itx"] != 1:
+        errors.append("Case does not support ITX motherboards.")
+    else:
+        passes.append("Case supports motherboard form factor.")
 
-    # --- PSU headroom (warning)
-    # estimate = CPU tdp + GPU power + 150W buffer
-    if cpu and gpu and psu:
-        est = int(cpu["tdp_w"] + gpu["power_w"] + 150)
-        headroom = int(psu["watts"] - est)
-        if psu["watts"] < est:
-            warnings.append(f"PSU may be too weak. Estimated need **{est}W**, PSU is **{psu['watts']}W**.")
-        else:
-            passes.append(f"PSU wattage looks OK. Estimated need **{est}W**, PSU is **{psu['watts']}W** (headroom {headroom}W).")
+    # PSU headroom check
+    estimated = cpu["tdp_w"] + gpu["power_w"] + 150
+    if psu["watts"] < estimated:
+        warnings.append(f"PSU may be underpowered ({psu['watts']}W vs ~{estimated}W needed).")
+    else:
+        passes.append("PSU wattage is sufficient.")
 
-    # --- RAM capacity warning
-    if ram:
-        if ram["size_gb"] < 16:
-            warnings.append("RAM is under **16GB**. Many modern games/apps run better at 16GB+.")
-        else:
-            passes.append(f"RAM capacity is **{ram['size_gb']}GB** (OK).")
+    # RAM size warning
+    if ram["size_gb"] < 16:
+        warnings.append("RAM is under 16GB (recommended minimum).")
+    else:
+        passes.append("RAM capacity is sufficient.")
 
-    # --- Total price
-    total = 0
-    for part in [cpu, mobo, ram, gpu, psu, case]:
-        if part and "price" in part.keys():
-            total += int(part["price"])
+    # Total price
+    total_price = sum([
+        cpu["price"],
+        mobo["price"],
+        ram["price"],
+        gpu["price"],
+        psu["price"],
+        case["price"],
+    ])
 
     st.subheader("Build Summary")
-    st.write(f"**Total Price:** ${total}")
+    st.write(f"**Total Price:** ${total_price}")
 
     st.subheader("Compatibility Report")
+
     if errors:
-        st.error("❌ Incompatible (fix these first):")
+        st.error("❌ Incompatible configuration:")
         for e in errors:
             st.write(f"- {e}")
     else:
-        st.success("✅ No hard incompatibilities found.")
+        st.success("✅ No critical incompatibilities found.")
 
     if warnings:
         st.warning("⚠️ Warnings:")
@@ -346,10 +345,7 @@ if st.button("✅ Check Compatibility"):
             st.write(f"- {w}")
 
     if passes:
-        st.info("✅ Checks passed:")
+        st.info("✅ Passed checks:")
         for p in passes:
             st.write(f"- {p}")
-
-
-
 
