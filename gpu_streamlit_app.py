@@ -1,13 +1,25 @@
 import streamlit as st
-import sqlite3 
+import sqlite3
 
-conn = sqlite3.connect("pcparts.sqbpro")
+# ✅ IMPORTANT: use the actual SQLite DB file you uploaded (likely pcparts.db)
+conn = sqlite3.connect("pcparts.db", check_same_thread=False)
 conn.row_factory = sqlite3.Row
 
-def load_table(table_name):
+
+def load_table(table_name: str):
     cur = conn.cursor()
     cur.execute(f"SELECT * FROM {table_name}")
     return cur.fetchall()
+
+
+def pick_row_by_label(rows, label: str):
+    # rows: list[sqlite3.Row] that include 'name' and 'price'
+    # label format: "NAME ($PRICE)"
+    for r in rows:
+        if f"{r['name']} (${r['price']})" == label:
+            return r
+    return None
+
 
 st.set_page_config(page_title="GPU SHOWDOWN", page_icon="🎮")
 
@@ -150,51 +162,25 @@ def compute_gpu_setup(brand_choice, model_choice, use_choice, res_choice):
 
 
 st.subheader("Choose a GPU brand")
-
 brand_choice = st.selectbox("Brand", ["NVIDIA", "AMD"])
 
 st.subheader("Choose a specific model")
-
 if brand_choice == "NVIDIA":
     model_choice = st.selectbox(
         "NVIDIA Models",
-        [
-            "RTX 4060 ($350)",
-            "RTX 4070 ($600)",
-            "RTX 4080 ($1200)",
-        ],
+        ["RTX 4060 ($350)", "RTX 4070 ($600)", "RTX 4080 ($1200)"],
     )
 else:
     model_choice = st.selectbox(
         "AMD Models",
-        [
-            "RX 7600 ($350)",
-            "RX 7700 XT ($500)",
-            "RX 7900 XT ($950)",
-        ],
+        ["RX 7600 ($350)", "RX 7700 XT ($500)", "RX 7900 XT ($950)"],
     )
 
 st.subheader("Choose your main use case")
-
-use_choice = st.selectbox(
-    "Use Case",
-    [
-        "Gaming",
-        "Rendering",
-        "General Use",
-    ],
-)
+use_choice = st.selectbox("Use Case", ["Gaming", "Rendering", "General Use"])
 
 st.subheader("Choose resolution")
-
-res_choice = st.selectbox(
-    "Resolution",
-    [
-        "1080p",
-        "1440p",
-        "4K",
-    ],
-)
+res_choice = st.selectbox("Resolution", ["1080p", "1440p", "4K"])
 
 st.markdown("---")
 
@@ -207,7 +193,6 @@ if st.button("Calculate Performance"):
     )
 
     st.subheader("Results")
-
     col1, col2 = st.columns(2)
 
     with col1:
@@ -227,13 +212,143 @@ if st.button("Calculate Performance"):
     st.write(f"**Value:** {result['price_verdict']}")
 
     st.markdown("**Comment / Analysis:**")
-    st.text_area(
-        label="",
-        value=result["comment"],
-        height=140,
-    )
+    st.text_area(label="", value=result["comment"], height=140)
 else:
     st.info("Set your options above, then click **Calculate Performance**.")
+
+
+# =========================
+# 🧩 PC BUILDER (DATABASE)
+# =========================
+st.markdown("---")
+st.header("🧩 PC Builder (Compatibility Check)")
+st.write("Select parts from the database and get compatibility results + price totals.")
+
+# Load tables from SQLite
+cpus = load_table("cpus")
+motherboards = load_table("motherboards")
+rams = load_table("ram")
+gpus = load_table("gpus")
+psus = load_table("psus")
+cases = load_table("cases") if True else []
+
+if not (cpus and motherboards and rams and gpus and psus):
+    st.warning(
+        "One or more tables are empty (cpus/motherboards/ram/gpus/psus). "
+        "Add records in DB Browser, then refresh."
+    )
+
+cpu_label = st.selectbox(
+    "CPU",
+    [f"{r['name']} (${r['price']})" for r in cpus] if cpus else ["(no CPUs found)"],
+)
+mobo_label = st.selectbox(
+    "Motherboard",
+    [f"{r['name']} (${r['price']})" for r in motherboards] if motherboards else ["(no motherboards found)"],
+)
+ram_label = st.selectbox(
+    "RAM",
+    [f"{r['name']} (${r['price']})" for r in rams] if rams else ["(no RAM found)"],
+)
+gpu_label = st.selectbox(
+    "GPU",
+    [f"{r['name']} (${r['price']})" for r in gpus] if gpus else ["(no GPUs found)"],
+)
+psu_label = st.selectbox(
+    "PSU",
+    [f"{r['name']} (${r['price']})" for r in psus] if psus else ["(no PSUs found)"],
+)
+
+use_case_case = st.checkbox("Include a Case in compatibility checks", value=True)
+
+case_label = None
+if use_case_case:
+    case_label = st.selectbox(
+        "Case",
+        [f"{r['name']} (${r['price']})" for r in cases] if cases else ["(no cases found)"],
+    )
+
+if st.button("✅ Check Compatibility"):
+    cpu = pick_row_by_label(cpus, cpu_label)
+    mobo = pick_row_by_label(motherboards, mobo_label)
+    ram = pick_row_by_label(rams, ram_label)
+    gpu = pick_row_by_label(gpus, gpu_label)
+    psu = pick_row_by_label(psus, psu_label)
+    case = pick_row_by_label(cases, case_label) if (use_case_case and case_label and cases) else None
+
+    errors = []
+    warnings = []
+    passes = []
+
+    # --- Socket check
+    if cpu and mobo:
+        if cpu["socket"] != mobo["socket"]:
+            errors.append(f"CPU socket **{cpu['socket']}** does not match motherboard socket **{mobo['socket']}**.")
+        else:
+            passes.append(f"CPU socket matches motherboard (**{cpu['socket']}**).")
+
+    # --- RAM type check
+    if ram and mobo:
+        if ram["ram_type"] != mobo["ram_type"]:
+            errors.append(f"RAM type **{ram['ram_type']}** does not match motherboard RAM type **{mobo['ram_type']}**.")
+        else:
+            passes.append(f"RAM type matches motherboard (**{ram['ram_type']}**).")
+
+    # --- Case form factor check (optional)
+    if case and mobo:
+        ff = mobo["form_factor"]  # "ATX" / "mATX" / "ITX"
+        if ff == "ATX" and case["supports_atx"] != 1:
+            errors.append("Case does not support **ATX** motherboards.")
+        elif ff == "mATX" and case["supports_matx"] != 1:
+            errors.append("Case does not support **mATX** motherboards.")
+        elif ff == "ITX" and case["supports_itx"] != 1:
+            errors.append("Case does not support **ITX** motherboards.")
+        else:
+            passes.append(f"Case supports motherboard form factor (**{ff}**).")
+
+    # --- PSU headroom (warning)
+    # estimate = CPU tdp + GPU power + 150W buffer
+    if cpu and gpu and psu:
+        est = int(cpu["tdp_w"] + gpu["power_w"] + 150)
+        headroom = int(psu["watts"] - est)
+        if psu["watts"] < est:
+            warnings.append(f"PSU may be too weak. Estimated need **{est}W**, PSU is **{psu['watts']}W**.")
+        else:
+            passes.append(f"PSU wattage looks OK. Estimated need **{est}W**, PSU is **{psu['watts']}W** (headroom {headroom}W).")
+
+    # --- RAM capacity warning
+    if ram:
+        if ram["size_gb"] < 16:
+            warnings.append("RAM is under **16GB**. Many modern games/apps run better at 16GB+.")
+        else:
+            passes.append(f"RAM capacity is **{ram['size_gb']}GB** (OK).")
+
+    # --- Total price
+    total = 0
+    for part in [cpu, mobo, ram, gpu, psu, case]:
+        if part and "price" in part.keys():
+            total += int(part["price"])
+
+    st.subheader("Build Summary")
+    st.write(f"**Total Price:** ${total}")
+
+    st.subheader("Compatibility Report")
+    if errors:
+        st.error("❌ Incompatible (fix these first):")
+        for e in errors:
+            st.write(f"- {e}")
+    else:
+        st.success("✅ No hard incompatibilities found.")
+
+    if warnings:
+        st.warning("⚠️ Warnings:")
+        for w in warnings:
+            st.write(f"- {w}")
+
+    if passes:
+        st.info("✅ Checks passed:")
+        for p in passes:
+            st.write(f"- {p}")
 
 
 
