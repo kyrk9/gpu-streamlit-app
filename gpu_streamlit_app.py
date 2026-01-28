@@ -274,7 +274,7 @@ if run:
 
     # Build card
     with st.container(border=True):
-        st.subheader("✅ Recommended Build (from your database)")
+        st.subheader("✅ Recommended Build")
         left, right = st.columns([1.2, 0.8])
 
         with left:
@@ -329,6 +329,7 @@ Warnings:
 
 else:
     st.info("Use the sidebar to set a budget, then click **Generate Best Build**.")
+
 
 
 
